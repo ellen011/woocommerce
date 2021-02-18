@@ -25,8 +25,7 @@ class WC_Admin_Dashboard_Finish_Setup_Test extends WC_Unit_Test_Case {
 	 * @return string Render widget HTML
 	 */
 	public function get_widget_output() {
-		update_option( 'woocommerce_task_list_complete', false );
-		update_option( 'woocommerce_task_list_hidden', false );
+		update_option( 'woocommerce_task_list_hidden', 'no' );
 
 		ob_start();
 		$this->get_widget()->render();
@@ -109,19 +108,17 @@ class WC_Admin_Dashboard_Finish_Setup_Test extends WC_Unit_Test_Case {
 	 * Provides dataset that controls output of `should_display_widget`
 	 */
 	public function should_display_widget_data_provider() {
-		// these dataset should not render the widget
-		// we only want to render the widget when both options are set to false.
 		return array(
 			array(
 				array(
-					'woocommerce_task_list_complete' => true,
-					'woocommerce_task_list_hidden'   => false,
+					'woocommerce_task_list_tracked_completed_tasks' => array( 'store_details', 'products', 'tax', 'shipping', 'appearance' ),
+					'woocommerce_task_list_hidden' => 'no',
 				),
 			),
 			array(
 				array(
-					'woocommerce_task_list_complete' => false,
-					'woocommerce_task_list_hidden'   => true,
+					'woocommerce_task_list_tracked_completed_tasks' => array( 'store_details', 'products', 'tax', 'shipping', 'appearance' ),
+					'woocommerce_task_list_hidden' => 'yes',
 				),
 			),
 		);

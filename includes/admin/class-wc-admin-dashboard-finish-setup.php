@@ -48,9 +48,18 @@ if ( ! class_exists( 'WC_Admin_Dashboard_Finish_Setup', false ) ) :
 		);
 
 		/**
+		 * # of completed tasks.
+		 *
+		 * @var int
+		 */
+		private $completed_tasks_count = 0;
+
+		/**
 		 * WC_Admin_Dashboard_Finish_Setup constructor.
 		 */
 		public function __construct() {
+			$this->populate_tasks();
+			$this->set_completed_tasks();
 			$this->should_display_widget() && $this->init();
 		}
 
@@ -75,20 +84,17 @@ if ( ! class_exists( 'WC_Admin_Dashboard_Finish_Setup', false ) ) :
 			$version = Constants::get_constant( 'WC_VERSION' );
 			wp_enqueue_style( 'wc-dashboard-finish-setup', WC()->plugin_url() . '/assets/css/dashboard-finish-setup.css', array(), $version );
 
-			$this->populate_tasks();
-
-			$total_number_of_tasks           = count( $this->tasks );
-			$total_number_of_completed_tasks = count( $this->get_completed_tasks() );
-
 			$task = $this->get_next_task();
 			if ( ! $task ) {
 				return;
 			}
 
-			$button_link = $task['button_link'];
+			$button_link           = $task['button_link'];
+			$completed_tasks_count = $this->completed_tasks_count;
+			$tasks_count           = count( $this->tasks );
 
 			// Given 'r' (circle element's r attr), dashoffset = ((100-$desired_percentage)/100) * PI * (r*2).
-			$progress_percentage = ( $total_number_of_completed_tasks / $total_number_of_tasks ) * 100;
+			$progress_percentage = ( $completed_tasks_count / $tasks_count ) * 100;
 			$circle_r            = 6.5;
 			$circle_dashoffset   = ( ( 100 - $progress_percentage ) / 100 ) * ( pi() * ( $circle_r * 2 ) );
 
@@ -118,17 +124,17 @@ if ( ! class_exists( 'WC_Admin_Dashboard_Finish_Setup', false ) ) :
 		}
 
 		/**
-		 * Return completed tasks
-		 *
-		 * @return array
+		 * Set # of completed tasks
 		 */
-		private function get_completed_tasks() {
-			return array_filter(
+		private function set_completed_tasks() {
+			$completed_tasks = array_filter(
 				$this->tasks,
 				function( $task ) {
 					return $task['completed'];
 				}
 			);
+
+			$this->completed_tasks_count = count( $completed_tasks );
 		}
 
 		/**
@@ -152,7 +158,8 @@ if ( ! class_exists( 'WC_Admin_Dashboard_Finish_Setup', false ) ) :
 		 * @return bool
 		 */
 		private function should_display_widget() {
-			return true !== get_option( 'woocommerce_task_list_complete' ) && true !== get_option( 'woocommerce_task_list_hidden' );
+			$all_completed = count( $this->tasks ) === $this->completed_tasks_count;
+			return false === $all_completed && 'yes' !== get_option( 'woocommerce_task_list_hidden' );
 		}
 	}
 

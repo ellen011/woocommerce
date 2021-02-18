@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_Admin_Dashboard', false ) ) :
 		 */
 		public function __construct() {
 			// Only hook in admin parts if the user has admin access.
-			if ( $this->should_display_widget()() && current_user_can( 'view_woocommerce_reports' ) || current_user_can( 'manage_woocommerce' ) || current_user_can( 'publish_shop_orders' ) ) {
+			if ( $this->should_display_widget() && ( current_user_can( 'view_woocommerce_reports' ) || current_user_can( 'manage_woocommerce' ) || current_user_can( 'publish_shop_orders' ) ) ) {
 				// If on network admin, only load the widget that works in that context and skip the rest.
 				if ( is_multisite() && is_network_admin() ) {
 					add_action( 'wp_network_dashboard_setup', array( $this, 'register_network_order_widget' ) );
@@ -59,11 +59,17 @@ if ( ! class_exists( 'WC_Admin_Dashboard', false ) ) :
 
 		/**
 		 * Check to see if we should display the widget.
+		 * 1. If woocommerce_task_list_complete is set to yes
+		 * 2. woocommerce_task_list_hidden is set to yes
+		 * 3. woocommerce_task_list_tracked_completed_tasks has 5 items
+		 *    ('store_details', 'products', 'tax', 'shipping', 'appearance') completed.
 		 *
 		 * @return bool
 		 */
 		private function should_display_widget() {
-			return true !== get_option( 'woocommerce_task_list_complete' ) && true !== get_option( 'woocommerce_task_list_hidden' );
+			return 'yes' === get_option( 'woocommerce_task_list_complete' )
+				   || 'yes' === get_option( 'woocommerce_task_list_hidden' )
+				   || count( get_option( 'woocommerce_task_list_tracked_completed_tasks', array() ) ) === 5;
 		}
 
 		/**
